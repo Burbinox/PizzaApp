@@ -2,8 +2,8 @@ from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 import utils
 from bson.objectid import ObjectId
-from pydantic import BaseModel, validator
 from statistics import mean
+from schemas.vote import Vote
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client.pizza
@@ -13,24 +13,15 @@ collection = db["pizzas"]
 app = FastAPI()
 
 
-class Vote(BaseModel):
-    user_id: int
-    vote: int
-
-    @validator("vote")
-    def vote_must_be_in_range_1_to_5(cls, value):
-        if value not in [1, 2, 3, 4, 5]:
-            raise ValueError("Allowed vote values are 1,2,3,4,5")
-        return value
-
-
 @app.get("/")
 def welcome():
+    """Just welcome page."""
     return {"Message": "Welcome to rate pizza app!"}
 
 
 @app.get("/pizza")
 def get_all_pizzas():
+    """Get all available pizzas."""
     try:
         pizzas_sanitized = utils.sanitize_mongodb_document(list(collection.find({})))
         return {"pizzas": pizzas_sanitized}
@@ -40,6 +31,7 @@ def get_all_pizzas():
 
 @app.get("/pizza/{item_id}")
 def get_one_pizza(item_id):
+    """Get one pizza."""
     try:
         pizza_obj = collection.find_one(ObjectId(item_id))
         pizza_sanitized = utils.sanitize_mongodb_document(pizza_obj)
@@ -50,6 +42,11 @@ def get_one_pizza(item_id):
 
 @app.post("/pizza/{item_id}")
 def vote_on_pizza(item_id, vote: Vote):
+    """
+    Allow user to vote on specific pizza.
+    Create user vote in pizza document or update vote if it exist.
+    :return Average vote for pizza.
+    """
     try:
         pizza_obj = collection.find_one(ObjectId(item_id))
     except:
