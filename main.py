@@ -27,7 +27,7 @@ def get_all_pizzas():
         pizzas_sanitized = utils.sanitize_mongodb_document(list(collection.find({})))
         return {"pizzas": pizzas_sanitized}
     except:
-        raise HTTPException(status_code=400, detail="Item not found")
+        raise HTTPException(status_code=400, detail="Something went wrong")
 
 
 @app.get("/pizza/{item_id}")
@@ -46,7 +46,6 @@ def vote_on_pizza(item_id, vote: Vote, response: Response):
     """
     Allow user to vote on specific pizza.
     Create user vote in pizza document or update vote if it exist.
-    :return Average vote for pizza.
     """
     try:
         pizza_obj = collection.find_one(ObjectId(item_id))
