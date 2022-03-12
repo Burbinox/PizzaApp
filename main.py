@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pymongo import MongoClient
-from bson import json_util, ObjectId
-import json
+import utils
+from bson.objectid import ObjectId
 
 client = MongoClient('mongodb://localhost:27017/')
 db = client.pizza
@@ -18,5 +18,12 @@ def welcome():
 
 @app.get("/pizza")
 def get_all_pizzas():
-    pizzas_sanitized = json.loads(json_util.dumps(list(collection.find({}))))
+    pizzas_sanitized = utils.sanitize_mongodb_document(list(collection.find({})))
     return {"pizzas": pizzas_sanitized}
+
+
+@app.get("/pizza/{item_id}")
+def get_one_pizza(item_id):
+    pizza_obj = collection.find_one(ObjectId(item_id))
+    pizza_sanitized = utils.sanitize_mongodb_document(pizza_obj)
+    return {"pizza": pizza_sanitized}
