@@ -4,10 +4,11 @@ import utils
 from bson.objectid import ObjectId
 from statistics import mean
 from schemas.vote import Vote
+import os
 
-client = MongoClient("mongodb://localhost:27017/")
-db = client.pizza
-collection = db["pizzas"]
+client = MongoClient(os.environ.get('MONGODB'))
+db = client.Pizza
+collection = db["Pizzas"]
 
 
 app = FastAPI()
