@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response, status
 from pymongo import MongoClient
 import utils
 from bson.objectid import ObjectId
@@ -42,7 +42,7 @@ def get_one_pizza(item_id):
 
 
 @app.post("/pizza/{item_id}")
-def vote_on_pizza(item_id, vote: Vote):
+def vote_on_pizza(item_id, vote: Vote, response: Response):
     """
     Allow user to vote on specific pizza.
     Create user vote in pizza document or update vote if it exist.
@@ -53,6 +53,7 @@ def vote_on_pizza(item_id, vote: Vote):
     except:
         raise HTTPException(status_code=404, detail="Item not found or invalid item")
     pizza_obj["rate"].update({str(vote.user_id): vote.vote})
-    pizza_obj["average_rate"] = mean(list(pizza_obj["rate"].values()))
+    pizza_obj["average_rate"] = round(mean(list(pizza_obj["rate"].values())), 2)
     collection.replace_one({"_id": ObjectId(item_id)}, pizza_obj)
+    response.status_code = status.HTTP_201_CREATED
     return {f"Now average rate of {pizza_obj['name']} is {pizza_obj['average_rate']}"}
