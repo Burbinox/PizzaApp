@@ -24,7 +24,8 @@ def welcome():
 def get_all_pizzas():
     """Get all available pizzas."""
     try:
-        pizzas_sanitized = utils.sanitize_mongodb_document(list(collection.find({})))
+        all_pizzas = collection.find({})
+        pizzas_sanitized = utils.sanitize_mongodb_document(list(all_pizzas))
         return {"pizzas": pizzas_sanitized}
     except:
         raise HTTPException(status_code=400, detail="Something went wrong")
@@ -45,7 +46,7 @@ def get_one_pizza(item_id):
 def vote_on_pizza(item_id, vote: Vote, response: Response):
     """
     Allow user to vote on specific pizza.
-    Create user vote in pizza document or update vote if it exist.
+    Create user vote in pizza document or update vote if it already exist.
     """
     try:
         pizza_obj = collection.find_one(ObjectId(item_id))
@@ -55,4 +56,4 @@ def vote_on_pizza(item_id, vote: Vote, response: Response):
     pizza_obj["average_rate"] = round(mean(list(pizza_obj["rate"].values())), 2)
     collection.replace_one({"_id": ObjectId(item_id)}, pizza_obj)
     response.status_code = status.HTTP_201_CREATED
-    return {f"Now average rate of {pizza_obj['name']} is {pizza_obj['average_rate']}"}
+    return {"message": f"Now average rate of {pizza_obj['name']} is {pizza_obj['average_rate']}"}
